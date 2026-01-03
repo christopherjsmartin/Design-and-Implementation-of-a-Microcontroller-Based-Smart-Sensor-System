@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sensor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>Real-Time Sensor Data</h1>
+<canvas id="chart" width="400" height="200"></canvas>
+
+<script>
+async function fetchData() {
+    const res = await fetch('/data');
+    return res.json();
+}
+
+const ctx = document.getElementById('chart').getContext('2d');
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [
+            {label: 'S1', data: [], borderColor: 'red', fill: false},
+            {label: 'S2', data: [], borderColor: 'blue', fill: false},
+            {label: 'S3', data: [], borderColor: 'green', fill: false}
+        ]
+    }
+});
+
+async function updateChart() {
+    const data = await fetchData();
+    const timeLabel = new Date().toLocaleTimeString();
+    if (data.S1 !== undefined) {
+        chart.data.labels.push(timeLabel);
+        chart.data.datasets[0].data.push(data.S1);
+        chart.data.datasets[1].data.push(data.S2);
+        chart.data.datasets[2].data.push(data.S3);
+        if (chart.data.labels.length > 20) {
+            chart.data.labels.shift();
+            chart.data.datasets.forEach(ds => ds.data.shift());
+        }
+        chart.update();
+    }
+}
+
+setInterval(updateChart, 2000);
+</script>
+</body>
+</html>
